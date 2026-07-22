@@ -20,7 +20,7 @@ def load_model():
             return None, f"Model load error: {str(e)}"
     return None, f"File 'logistic_model.pkl' not found at {MODEL_PATH}"
 
-# HTML Interface Template
+# Embedded HTML Template with Responsive Modern UI
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -154,7 +154,7 @@ HTML_TEMPLATE = """
         }
 
         .result-card .prediction-value {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--success-color);
             word-break: break-word;
@@ -220,11 +220,28 @@ def predict():
     if error:
         return render_template_string(HTML_TEMPLATE, prediction=error, is_error=True, probability=None, raw_input=raw_input)
 
+    # 1. Parse Input Values
     try:
         feature_list = [float(x.strip()) for x in raw_input.split(',') if x.strip()]
         if not feature_list:
-            raise ValueError("Empty input list")
+            return render_template_string(
+                HTML_TEMPLATE, 
+                prediction="Input Error: Empty or invalid input values.", 
+                raw_input=raw_input, 
+                is_error=True, 
+                probability=None
+            )
+    except Exception:
+        return render_template_string(
+            HTML_TEMPLATE, 
+            prediction="Input Error: Please enter valid numeric values separated by commas.", 
+            raw_input=raw_input, 
+            is_error=True, 
+            probability=None
+        )
 
+    # 2. Run Model Inference with detailed error tracing
+    try:
         features = np.array([feature_list])
         prediction_val = model.predict(features)[0]
 
@@ -241,18 +258,11 @@ def predict():
             is_error=False
         )
 
-    except ValueError:
-        return render_template_string(
-            HTML_TEMPLATE, 
-            prediction="Input Error: Enter numbers separated by commas.", 
-            raw_input=raw_input, 
-            is_error=True, 
-            probability=None
-        )
     except Exception as e:
+        # Show exact model mismatch message (e.g., number of expected features)
         return render_template_string(
             HTML_TEMPLATE, 
-            prediction=f"Inference Error: {str(e)}", 
+            prediction=f"Model Error: {str(e)}", 
             raw_input=raw_input, 
             is_error=True, 
             probability=None
