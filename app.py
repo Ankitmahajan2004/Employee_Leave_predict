@@ -43,3 +43,7 @@ def predict():
             prediction=f"Model Error: {str(e)}", 
             raw_input=request.form.get('features', '')
         )
+app = app
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
